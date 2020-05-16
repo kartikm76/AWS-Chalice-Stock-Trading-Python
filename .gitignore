@@ -1,0 +1,6 @@
+my_env
+*.pyc*
+.vscode
+src/.chalice/deployments/
+src/.chalice/deployed/
+.chalice/venv/

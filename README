@@ -1,0 +1,30 @@
+https://realpython.com/aws-chalice-serverless-python/
+$ python3.6 -m venv env
+$ source env/bin/activate
+(env)$ pip install chalice
+
+Build and Run Locally
+You can simulate the app by running it locally using the local utility of Chalice:
+
+(env)$ chalice local
+Serving on 127.0.0.1:8000
+
+Deploy on AWS Lambda
+Chalice makes deploying your serverless app completely effortless. Using the deploy utility, you can simply instruct Chalice to deploy and create a Lambda function that can be accessible via a REST API.
+
+Before we begin deployment, we need to make sure we have our AWS credentials in place, usually located at ~/.aws/config. The contents of the file look as follows:
+
+[default]
+aws_access_key_id=<your-access-key-id>
+aws_secret_access_key=<your-secret-access-key>
+region=<your-region>
+With AWS credentials in place, let’s begin our deployment process with just a single command:
+
+(env)$ chalice deploy
+Creating deployment package.
+Updating policy for IAM role: hello-world-dev
+Creating lambda function: hello-world-dev
+Creating Rest API
+Resources deployed:
+  - Lambda ARN: arn:aws:lambda:ap-south-1:679337104153:function:hello-world-dev
+  - Rest API URL: https://fqcdyzvytc.execute-api.ap-south-1.amazonaws.com/api/
