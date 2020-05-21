@@ -1,10 +1,11 @@
-from peewee import Model, CharField, DateField, FloatField
-from chalicelib.model.base_model import MySQLModel
+from sqlalchemy import Boolean, Column, Integer, String, Date, Float
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+from chalicelib.utils.database_connect import Base
 
-class AccountBalance(MySQLModel):    
-    account_id = CharField()
-    balance_amount = FloatField()
-    as_of_date = DateField()
+class AccountBalanceORM(Base):
+    __tablename__ = "account_balance"
 
-    class Meta:
-        table_name = 'account_balance'
+    account_id = Column(String, primary_key=True, index=True)
+    balance_amount = Column(Float)
+    as_of_date = Column(Date)
