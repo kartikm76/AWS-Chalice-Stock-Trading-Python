@@ -8,8 +8,7 @@ class AccountBalanceService:
         data_rows = None
         account_balance_dictionary = {}
         account_balance_list = []
-        
-        print ("comgin here")
+                
         if self.account_id is None:            
             account_balance_rows = session.query(AccountBalanceORM)
         else:

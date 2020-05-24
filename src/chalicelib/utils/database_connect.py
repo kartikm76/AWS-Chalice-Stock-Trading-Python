@@ -6,7 +6,7 @@ import logging
 SQLALCHEMY_DATABASE_URL = 'mysql+pymysql://admin:password@stock-trading.cufofj0atk2l.us-east-1.rds.amazonaws.com:3306/stock-trading'
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, echo=False
+    SQLALCHEMY_DATABASE_URL, echo=False, pool_recycle=3600
 )
 
 Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
