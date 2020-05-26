@@ -7,7 +7,7 @@ from chalicelib.utils.database_connect import Base
 class AccountORM(Base):
     __tablename__ = "account_master"
     
-    id = Column(String, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     type = Column(String)
     open_date = Column(Date)
-    isActive = Column(String)
+    is_active = Column(String)

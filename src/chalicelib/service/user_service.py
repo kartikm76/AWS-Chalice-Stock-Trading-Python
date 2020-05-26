@@ -20,7 +20,7 @@ class UserService:
             user.id = payload["id"]
             user.name = payload["name"]
             user.ssn = payload["ssn"]
-            user.isActive = "Y"
+            user.is_active = "Y"
             user.profile_create_date = datetime.date.today()
             try:
                 user_schema = UserSchema.from_orm(user)
@@ -28,17 +28,15 @@ class UserService:
                 session.commit()
                 self.return_payload['user_id'] = user.id
                 self.return_payload['status'] = "OK"                
-                self.return_payload['message'] = user.id + " successfully created"
-                return self.return_payload
+                self.return_payload['message'] = user.id + " successfully created"                
             except ValidationError as e:
                 self.return_payload['status'] = "ERROR"
-                self.return_payload['message'] = e.errors()
-                return self.return_payload
+                self.return_payload['message'] = e.errors()                
         else:
             self.return_payload['user_id'] = user.id
             self.return_payload['status'] = "WARN"            
             self.return_payload['message'] = "User Exists"
-            return self.return_payload
+        return self.return_payload
                
     def get_users(self, session, id=None):
         self.id = id
@@ -54,7 +52,7 @@ class UserService:
             user_dict = { 'id':  user.id,
                           'name': user.name,
                           'ssn': user.ssn,
-                          'is_active': user.isActive,
+                          'is_active': user.is_active,
                           'profile_create_date': SerializeObject.serialize_object(user.profile_create_date)}
 
             user_list.append(user_dict)

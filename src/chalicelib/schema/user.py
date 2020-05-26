@@ -1,7 +1,3 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
-from chalicelib.utils.database_connect import Base
 from pydantic import BaseModel, constr, ValidationError, validator
 import re
 
@@ -11,8 +7,7 @@ class UserSchema(BaseModel):
     id: str
     name: str
     ssn: str
-    isActive: str
-
+    
     class Config:
         orm_mode = True
     
@@ -26,6 +21,5 @@ class UserSchema(BaseModel):
         if bool(re.match(r'^(?!000|.+0{4})(?:\d{9}|\d{3}-\d{2}-\d{4})$', v)):
             print ("SSN is valid")
         else:
-            raise ValueError("SSN is invalid")
-            
+            raise ValueError("SSN is invalid")            
         return v

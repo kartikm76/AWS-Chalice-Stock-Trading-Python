@@ -10,7 +10,7 @@ class UserORM(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String)
     ssn = Column(String)
-    isActive = Column(String)
+    is_active = Column(String)
     profile_create_date = Column(Date)
 
     # def __repr__(self):

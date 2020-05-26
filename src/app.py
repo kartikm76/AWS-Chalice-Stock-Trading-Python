@@ -24,7 +24,9 @@ def get_all_users():
 
 @app.route('/users/{id}', methods=['GET'])
 def get_user(id):
-    return UserService().get_users(session, id)
+    return Response(body=UserService().get_users(session, id),
+                    status_code=200,
+                    headers={'Content-Type': 'application/json'})
 
 @app.route('/accountbalance/{account_id}', methods=['GET'])
 def get_account_balance(account_id):
@@ -37,4 +39,15 @@ def get_account_details(account_id):
 @app.route('/user', methods=['POST'])
 def create_user():
     payload = app.current_request.json_body
-    return UserService().add_user(session, payload)
+    return Response(body=UserService().add_user(session, payload),
+                    status_code=200,
+                    headers={'Content-Type': 'application/json'})
+
+@app.route('/account', methods=['POST'])
+def create_account():
+    payload = app.current_request.json_body
+    return AccountService().add_account(session, payload)
+
+    # return Response(body=AccountService().add_account(session, payload),
+    #                 status_code=200,
+    #                 headers={'Content-Type': 'application/json'})
