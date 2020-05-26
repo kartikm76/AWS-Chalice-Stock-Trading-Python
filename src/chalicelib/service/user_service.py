@@ -8,32 +8,33 @@ from chalicelib.utils.constants import *
 class UserService:
 
     return_payload = {
-        "code": None,
+        "status": None,
         "message": None        
     }
 
     def add_user(self, session, payload):
-        user = session.query(UserORM).filter(UserORM.id == payload["id"]).first()
-
-        if not user:
-            user = UserORM()
-            user.id = payload["id"]
-            user.name = payload["name"]
-            user.ssn = payload["ssn"]
-            user.is_active = YES_CODE
-            user.profile_create_date = datetime.date.today()
-            try:
-                user_schema = UserSchema.from_orm(user)
+        try:
+            user_schema = UserSchema.parse_obj(payload)
+            user = session.query(UserORM).filter(UserORM.id == payload["id"]).first()
+            if not user:
+                user = UserORM()
+                user.id = payload["id"]
+                user.name = payload["name"]
+                user.ssn = payload["ssn"]
+                user.is_active = YES_CODE
+                user.profile_create_date = datetime.date.today()
+            
                 session.add(user)
                 session.commit()
-                self.return_payload['code'] = SUCCESS_CODE
+                self.return_payload['status'] = SUCCESS_CODE
                 self.return_payload['message'] = user.id + " successfully created"                
-            except ValidationError as e:
+            else:
+                self.return_payload['status'] = ERROR_CODE
+                self.return_payload['message'] = "User with id: ('{0}')".format(user.id) + " already exists"
+        except ValidationError as e:
                 self.return_payload['status'] = FATAL_CODE
                 self.return_payload['message'] = e.errors()                
-        else:            
-            self.return_payload['status'] = ERROR_CODE
-            self.return_payload['message'] = "User Exists"
+        
         return self.return_payload
                
     def get_users(self, session, id=None):

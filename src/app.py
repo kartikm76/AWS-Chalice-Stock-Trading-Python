@@ -4,7 +4,7 @@ from chalicelib.service.user_service import UserService
 from chalicelib.service.account_balance_service import AccountBalanceService
 from chalicelib.service.account_service import AccountService
 from chalicelib.service.stock_service import StockService
-from chalicelib.service.stock_trade import StockTrade
+from chalicelib.service.trade_service import TradeService
 import json
 
 app = Chalice(app_name='stock-trading')
@@ -67,10 +67,10 @@ def add_stock():
     payload = app.current_request.json_body
     return StockService().add_stock(session, payload)
 
-@app.route('/trade/{symbol}', methods=['POST'])
+@app.route('/trade', methods=['POST'])
 def stock_trade():
     payload = app.current_request.json_body
-    return TradeService().stock_trade(session, payload)
+    return TradeService().trade(session, payload)
 
 
     # return Response(body=AccountService().add_account(session, payload),
