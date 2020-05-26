@@ -1,0 +1,6 @@
+STOCK_INFO_URL='https://financialmodelingprep.com/api/v3/search?apikey=demo&query='
+SUCCESS_CODE='SUCCESS'
+FATAL_CODE='FATAL'
+ERROR_CODE='ERROR'
+YES_CODE='Y'
+NO_CODE='N'

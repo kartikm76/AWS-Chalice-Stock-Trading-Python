@@ -3,13 +3,13 @@ from chalicelib.model.user import UserORM
 from chalicelib.schema.user import UserSchema
 from pydantic import BaseModel, Field, ValidationError
 from chalicelib.utils.object_serialize import SerializeObject
+from chalicelib.utils.constants import *
 
 class UserService:
 
     return_payload = {
-        "status": None,
-        "user_id": None,
-        "message": None
+        "code": None,
+        "message": None        
     }
 
     def add_user(self, session, payload):
@@ -20,21 +20,19 @@ class UserService:
             user.id = payload["id"]
             user.name = payload["name"]
             user.ssn = payload["ssn"]
-            user.is_active = "Y"
+            user.is_active = YES_CODE
             user.profile_create_date = datetime.date.today()
             try:
                 user_schema = UserSchema.from_orm(user)
                 session.add(user)
                 session.commit()
-                self.return_payload['user_id'] = user.id
-                self.return_payload['status'] = "OK"                
+                self.return_payload['code'] = SUCCESS_CODE
                 self.return_payload['message'] = user.id + " successfully created"                
             except ValidationError as e:
-                self.return_payload['status'] = "ERROR"
+                self.return_payload['status'] = FATAL_CODE
                 self.return_payload['message'] = e.errors()                
-        else:
-            self.return_payload['user_id'] = user.id
-            self.return_payload['status'] = "WARN"            
+        else:            
+            self.return_payload['status'] = ERROR_CODE
             self.return_payload['message'] = "User Exists"
         return self.return_payload
                

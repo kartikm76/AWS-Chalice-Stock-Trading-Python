@@ -1,6 +1,5 @@
 from pydantic import BaseModel, constr, ValidationError, validator
 import re
-
 from typing import List
 
 class UserSchema(BaseModel):

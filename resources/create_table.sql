@@ -35,10 +35,9 @@ CREATE TABLE `account_balance` (
 
 -- 5. stock_master
 CREATE TABLE `stock_master` (
-  `stock_symbol` varchar(10) NOT NULL,
-  `stock_name` varchar(45) DEFAULT NULL,
-  `last_price` decimal(10,4) NOT NULL,
-  PRIMARY KEY (`stock_symbol`)
+  `symbol` varchar(10) NOT NULL,
+  `name` varchar(45) DEFAULT NULL,  
+  PRIMARY KEY (`symbol`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 6. stock_holding

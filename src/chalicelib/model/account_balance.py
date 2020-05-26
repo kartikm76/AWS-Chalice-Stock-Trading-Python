@@ -6,6 +6,6 @@ from chalicelib.utils.database_connect import Base
 class AccountBalanceORM(Base):
     __tablename__ = "account_balance"
 
-    account_id = Column(String, primary_key=True, index=True)
+    account_id = Column(Integer, primary_key=True, index=True)
     balance_amount = Column(Float)
     as_of_date = Column(Date)

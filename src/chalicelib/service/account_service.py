@@ -2,6 +2,7 @@ import datetime
 import json
 from chalicelib.model.account import AccountORM
 from chalicelib.utils.object_serialize import SerializeObject
+from chalicelib.utils.constants import *
 
 class AccountService:
 
@@ -28,14 +29,14 @@ class AccountService:
                 account = AccountORM()
                 account.id = new_account_id
                 account.type = account_type
-                account.is_active = "Y"
+                account.is_active = YES_CODE
                 account.open_date = datetime.date.today()
                 session.add(account)
                 session.commit()
-                self.return_payload['code'] = "OK"
-                self.return_payload['message'] = "AccountId: " + str(account.id) + " successfully created"                
+                self.return_payload['code'] = SUCCESS_CODE
+                self.return_payload['message'] = "AccountId: " + str(account.id) + " successfully created"
             else:
-                self.return_payload['code'] = "FATAL"
+                self.return_payload['code'] = FATAL_CODE
                 self.return_payload['message'] = "An internal error occured.."                
         return self.return_payload
                         
