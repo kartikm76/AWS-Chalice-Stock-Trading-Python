@@ -43,7 +43,7 @@ CREATE TABLE `stock_master` (
 -- 6. stock_holding
 CREATE TABLE `stock_holding` (
   `account_id` int NOT NULL,
-  `stock_symbol` varchar(10) NOT NULL,
+  `security_symbol` varchar(10) NOT NULL,
   `holding_qty` int DEFAULT NULL,
   `purchase_price` decimal(10,4) DEFAULT NULL,
   PRIMARY KEY (`account_id`,`stock_symbol`),

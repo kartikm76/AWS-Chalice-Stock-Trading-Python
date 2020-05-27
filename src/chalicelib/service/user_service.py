@@ -15,6 +15,7 @@ class UserService:
     def add_user(self, session, payload):
         try:
             user_schema = UserSchema.parse_obj(payload)
+            print ("User Schema: ", user_schema)
             user = session.query(UserORM).filter(UserORM.id == payload["id"]).first()
             if not user:
                 user = UserORM()
@@ -47,11 +48,11 @@ class UserService:
         else:
             users = session.query(UserORM).filter(UserORM.id == self.id)
 
-        for user in  users:     
+        for user in  users:            
             user_dict = { 'id':  user.id,
                           'name': user.name,
                           'ssn': user.ssn,
-                          'is_active': user.is_active,
+                          'is_active': user.is_active,                          
                           'profile_create_date': SerializeObject.serialize_object(user.profile_create_date)}
 
             user_list.append(user_dict)

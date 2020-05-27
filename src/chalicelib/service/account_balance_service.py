@@ -2,14 +2,14 @@ from chalicelib.model.account_balance import AccountBalanceORM
 from chalicelib.utils.object_serialize import SerializeObject
       
 class AccountBalanceService:
-    def get_account_balance(self, session, account_id=None):
+    def get_account_balance(self, session, account_id=None, as_of_date=None):
         self.account_id = account_id
         
         data_rows = None
         account_balance_dictionary = {}
         account_balance_list = []
-                
-        if self.account_id is None:            
+        
+        if self.account_id is None:
             account_balance_rows = session.query(AccountBalanceORM)
         else:
             account_balance_rows = session.query(AccountBalanceORM).filter(AccountBalanceORM.account_id == self.account_id)

@@ -10,10 +10,10 @@ class UserSchema(BaseModel):
     class Config:
         orm_mode = True
     
-    @validator('id', pre=True)
-    def v_alphanumeric(cls, v):
-        assert v.isalpha(), 'must be alphanumeric'
-        return v
+    # @validator('id', pre=True)
+    # def v_alphanumeric(cls, v):
+    #     assert v.isalpha(), 'must be alphanumeric'
+    #     return v
 
     @validator('ssn')
     def ssn_must_format(cls, v):        

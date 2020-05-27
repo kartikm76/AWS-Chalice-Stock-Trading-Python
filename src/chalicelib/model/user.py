@@ -7,10 +7,10 @@ from chalicelib.utils.database_connect import Base
 class UserORM(Base):
     __tablename__ = "user_master"
     
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String)
-    ssn = Column(String)
-    is_active = Column(String)
+    id = Column(String(20), primary_key=True, index=True)
+    name = Column(String(45))
+    ssn = Column(String(15))
+    is_active = Column(String(1))
     profile_create_date = Column(Date)
 
     # def __repr__(self):
