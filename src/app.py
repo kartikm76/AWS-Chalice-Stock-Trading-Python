@@ -38,10 +38,16 @@ def create_user():
                     status_code=200,
                     headers={'Content-Type': 'application/json'})
 
-## Account Balance
+## Account Balance Query
 @app.route('/accountbalance/{account_id}', methods=['GET'])
 def get_account_balance(account_id):
     return AccountBalanceService().get_account_balance(session, account_id)
+
+## Account Balance Update
+@app.route('/accountbalance', methods=['POST'])
+def add_update_account_balance():
+    payload = app.current_request.json_body
+    return AccountBalanceService().add_update_account_balance(session, payload)
 
 ## Account
 @app.route('/account/{account_id}', methods=['GET'])

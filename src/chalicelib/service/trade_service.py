@@ -1,76 +1,97 @@
 import datetime
 from pydantic import BaseModel, Field, ValidationError
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from chalicelib.model.stock_holding import StockHoldingORM
 from chalicelib.model.account_balance import AccountBalanceORM
 from chalicelib.schema.trade import TradeSchema
 from chalicelib.service.account_balance_service import AccountBalanceService
 from chalicelib.service.security_lookup_service import SecurityLookUpService
-from chalicelib.utils.constants import *
+from chalicelib.utils.constants import API_KEY, SUCCESS_CODE, ERROR_CODE, FATAL_CODE
 
 class TradeService:
 
     return_payload = {
         "status": None,
-        "message": None        
+        "message": None 
     }
-
-    #1. input required - account_id, stock_symbol, direction - B/S, qty, price - will be determined by market price
-    #2. if stock does not exist in stock_holding; add
-    #3. if stock does exist in stock_holding; adjust its qty depending upon B/S
-    #4. update account_balance
-    #5. log into trade_activity
 
     def trade(self, session, payload):
         trade_instruction = ""
+        trade_value = ""
         try:
             # validate income json request
-            trade_instruction = TradeSchema.parse_obj(payload)
+            trade_instruction = TradeSchema.parse_obj(payload)         
+            security_look_up = SecurityLookUpService()
+
+            # Get the market price of the security to be traded
+            security_details = security_look_up.get_security_details(trade_instruction.symbol)
+            security_price = security_details["body"][0]["price"]
+            
+            trade_value = trade_instruction.quantity * security_price
+
+            # Get the account balance of the specific account
+            account_bal_service = AccountBalanceService()            
+            account_balance_row  = account_bal_service.get_account_balance(session, trade_instruction.account_id)
+                        
+            if account_balance_row:
+                existing_account_balance = account_balance_row[0]['balance_amount']
+            else:
+                self.return_payload['status'] = ERROR_CODE
+                self.return_payload['message'] = "Account '{0}'".format(trade_instruction.account_id) + " - balance could not be retrieved"
+                return self.return_payload
         except ValidationError as e:
             self.return_payload['status'] = ERROR_CODE
             self.return_payload['message'] = e.errors()
             return self.return_payload
 
-        # First get the market price for the given stock to check if the stock can be bought
+        # if the security is to be bought
         if trade_instruction.direction == 'B':
-            security_look_up = SecurityLookUpService()
-            security_details = security_look_up.get_security_details(trade_instruction.symbol)
-            securrity_price = security_details["body"][0]["name"])
-            print ("Sec Details: ", security_details["body"][0]["name"])
-                                               
-            # Get the account balance of the specific account
-            account_bal_service = AccountBalanceService()            
-            account_balance  = account_bal_service.get_account_balance(session, trade_instruction.account_id, as_of_date=datetime.date.today())
-            print ("Acc Balance: ", str(account_balance))
-            ##if account_balance >= trade_instruction.quantity * security.price:
+            # Exit; if not sufficient balance
+            if existing_account_balance < trade_value:                
+                self.return_payload['status'] = ERROR_CODE
+                self.return_payload['message'] = "Not enough balance to buy: " + trade_instruction.symbol
+                return self.return_payload
 
-                #     # start a transaction
-                #     transaction = session.create_transaction()
-                #     try:
-                #         stock_holding = session.query(StockHoldingORM).filter((StockHoldingORM.account_id == trade_instruction.account_id)                                                                            
-                #                                                             & (StockHoldingORM.stock_symbol == trade_instruction.symbol)).first()
-                #         if stock_holding.scalar():
+            # start a transaction
+            try:
+                stock_holding = session.query(StockHoldingORM).filter((StockHoldingORM.account_id == trade_instruction.account_id)                                                                            
+                                                                    & (StockHoldingORM.security_symbol == trade_instruction.symbol)).first()                    
+                if stock_holding is None:                        
+                    stock_holding = StockHoldingORM()
+                    stock_holding.account_id = trade_instruction.account_id
+                    stock_holding.security_symbol = trade_instruction.symbol
+                    stock_holding.holding_qty = trade_instruction.quantity
+                    stock_holding.purchase_price = security_price
+                else:
+                    print ("Stock already exists")
+                    stock_holding_total_qty = stock_holding.holding_qty + trade_instruction.quantity
+                    stock_holding.holding_qty = stock_holding_total_qty
+                    stock_holding.purchase_price = (stock_holding.purchase_price + security_price) / 2
 
-                #             # add stock holding qty
-                #             updated_stock_holding = stock_holding["holding_qty"] + trade_instruction.quantity
+                session.add(stock_holding)
+                    
+                accpunt_balance_payload = {"account_id": trade_instruction.account_id, "balance_amount": (existing_account_balance - trade_value)}
+                account_bal_service.add_update_account_balance(session, payload=accpunt_balance_payload, commit=False)
+                    
+                # call the method to update trade activity log
 
-                #             # update account balance
-                #             updated_balance = account_balance - (trade_instruction.quantity * security.price)
+                session.flush()
+                session.commit()
 
-                #         transaction.commit()
-                #     except:
-                #         transaction.rollback()                        
-                #         raise Exception
-                # else:
-                #     self.return_payload['status'] = ERROR_CODE
-                #     self.return_payload['message'] = "Not enough balance to buy: " + trade_instruction.symbol
-                #     return self.return_payload        
-
-                        
+                self.return_payload['status'] = SUCCESS_CODE
+                self.return_payload['message'] = trade_instruction.symbol + " trade executed successfully"
+                return self.return_payload                
+            except SQLAlchemyError as exception:
+                self.return_payload['status'] = FATAL_CODE
+                print(exception)
+                #self.return_payload['message'] = exception._message
+                session.rollback()
+                return self.return_payload
+            
                                                                 
-                        # call the method to update trade activity log
-                        # close the transaction
-                    # if not okay - return an error message
-                # if trade_instruction.direction = 'S':                 
+                                     
+                    # if trade_instruction.direction = 'S':                 
                     # check number of stocks to sell <= stocks in holding
                     # if okay:
                         # start a transaction
@@ -79,17 +100,5 @@ class TradeService:
                         # call the method to update trade activity log
                         # close the transaction
                     # if not okay - return an error message
-                    
-            print ("Trade: ", trade_instruction)
-            self.return_payload['status'] = SUCCESS_CODE
-            self.return_payload['message'] = trade_instruction.symbol + " trade executed successfully"
+                                
         return self.return_payload
-
-
-
-
-
-#stock_holding = session.query(StockHoldingORM).filter((StockHoldingORM.stock_symbol == trade_instruction.symbol)
-#                                                                & (StockHoldingORM.account_id == trade_instruction.account_id)).first()
-#
-#        if stock_holding.scalar():

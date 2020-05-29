@@ -3,7 +3,7 @@ from chalicelib.model.user import UserORM
 from chalicelib.schema.user import UserSchema
 from pydantic import BaseModel, Field, ValidationError
 from chalicelib.utils.object_serialize import SerializeObject
-from chalicelib.utils.constants import *
+from chalicelib.utils.constants import SUCCESS_CODE, ERROR_CODE, FATAL_CODE
 
 class UserService:
 
@@ -28,7 +28,7 @@ class UserService:
                 session.add(user)
                 session.commit()
                 self.return_payload['status'] = SUCCESS_CODE
-                self.return_payload['message'] = user.id + " successfully created"                
+                self.return_payload['message'] = user.id + " successfully created"
             else:
                 self.return_payload['status'] = ERROR_CODE
                 self.return_payload['message'] = "User with id: ('{0}')".format(user.id) + " already exists"

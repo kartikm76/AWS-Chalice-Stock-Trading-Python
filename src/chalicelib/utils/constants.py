@@ -1,4 +1,6 @@
-STOCK_INFO_URL='https://financialmodelingprep.com/api/v3/search?apikey=demo&query='
+SECURITY_INFO_URL='https://financialmodelingprep.com/api/v3/search?apikey=demo&query='
+SECURITY_PRICE_URL='https://financialmodelingprep.com/api/v3/quote/'
+API_KEY='1de91e659bf58c5585abe362fb19b480'
 SUCCESS_CODE='SUCCESS'
 FATAL_CODE='FATAL'
 ERROR_CODE='ERROR'

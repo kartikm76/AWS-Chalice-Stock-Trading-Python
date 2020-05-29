@@ -8,4 +8,3 @@ class AccountBalanceORM(Base):
 
     account_id = Column(Integer, primary_key=True, index=True)
     balance_amount = Column(Float)
-    as_of_date = Column(Date)
