@@ -3,7 +3,7 @@ from chalicelib.utils.database_connect import Base, engine, session
 from chalicelib.service.user_service import UserService
 from chalicelib.service.account_balance_service import AccountBalanceService
 from chalicelib.service.account_service import AccountService
-from chalicelib.service.security_service import SecurityService
+from chalicelib.service.account_holding import AccountHoldingService
 from chalicelib.service.trade_service import TradeService
 import json
 
@@ -69,23 +69,27 @@ def create_account():
     payload = app.current_request.json_body
     return AccountService().add_account(session, payload)
 
-# ## Security
-# @app.route('/Securitys', methods=['GET'])
+# ## Security Master
+# @app.route('/security', methods=['GET'])
 # def get_all_users():
-#     return SecurityService().get_Securitys(session)
+#     return SecurityService().get_securities(session)
 
-# @app.route('/Securitys/{symbol}', methods=['GET'])
-# def get_user(symbol):
-#     return SecurityService().get_Securitys(session, symbol)
+# @app.route('/security/{symbol}', methods=['GET'])
+# def get_security(symbol):
+#     return SecurityService().get_securities(session, symbol)
 
-
-@app.route('/security', methods=['POST'])
-def add_security():
-    payload = app.current_request.json_body
-    return SecurityService().add_security(session, payload)
+# @app.route('/security', methods=['POST'])
+# def add_security():
+#     payload = app.current_request.json_body
+#     return SecurityService().add_security(session, payload)
 
 
 @app.route('/trade', methods=['POST'])
 def security_trade():
     payload = app.current_request.json_body
     return TradeService().trade(session, payload)
+
+
+@app.route('/holdings/{account_id}', methods=['GET'])
+def get_account_holdings(account_id):
+    return AccountHoldingService().get_account_holding(session, account_id)
