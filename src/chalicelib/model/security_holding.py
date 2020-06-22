@@ -1,9 +1,10 @@
 from sqlalchemy import Column, String, Float, Integer
 from chalicelib.utils.database_connect import Base
 
-class StockHoldingORM(Base):
-    __tablename__ = "stock_holding"
-    
+
+class SecurityHoldingORM(Base):
+    __tablename__ = "security_holding"
+
     account_id = Column(Integer, primary_key=True, index=True)
     security_symbol = Column(String(10), primary_key=True, index=True)
     holding_qty = Column(Float)

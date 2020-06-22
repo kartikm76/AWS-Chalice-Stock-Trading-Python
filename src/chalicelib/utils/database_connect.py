@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import logging
 
-SQLALCHEMY_DATABASE_URL = 'mysql+pymysql://admin:password@stock-trading.cufofj0atk2l.us-east-1.rds.amazonaws.com:3306/stock-trading'
+SQLALCHEMY_DATABASE_URL = 'mysql+pymysql://admin:Guruji2876@security-trading.cufofj0atk2l.us-east-1.rds.amazonaws.com:3306/security-trading'
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, echo=False, pool_recycle=3600

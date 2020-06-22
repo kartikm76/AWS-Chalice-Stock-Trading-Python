@@ -6,8 +6,8 @@ from chalicelib.utils.database_connect import Base
 
 class UserORM(Base):
     __tablename__ = "user_master"
-    
-    id = Column(String(20), primary_key=True, index=True)
+
+    user_id = Column(String(20), primary_key=True, index=True)
     name = Column(String(45))
     ssn = Column(String(15))
     is_active = Column(String(1))
