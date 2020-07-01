@@ -7,6 +7,8 @@ from chalicelib.model.account_balance import AccountBalanceORM
 from chalicelib.schema.trade import TradeSchema
 from chalicelib.service.account_balance_service import AccountBalanceService
 from chalicelib.service.security_lookup_service import SecurityLookUpService
+from chalicelib.service.security_holding_service import SecurityHoldingService
+from chalicelib.service.trade_activity_service import TradeActivityService
 from chalicelib.utils.constants import API_KEY, SUCCESS_CODE, ERROR_CODE, FATAL_CODE
 
 
@@ -20,6 +22,8 @@ class TradeService:
     def trade(self, session, payload):
         trade_instruction = ""
         trade_value = ""
+        security_price = 0.0
+
         try:
             # validate income json request
             trade_instruction = TradeSchema.parse_obj(payload)
@@ -29,7 +33,6 @@ class TradeService:
             security_details = security_look_up.get_security_details(
                 trade_instruction.symbol)
             security_price = security_details["body"][0]["price"]
-
             trade_value = trade_instruction.quantity * security_price
 
             # Get the account balance of the specific account
@@ -60,52 +63,76 @@ class TradeService:
 
             # start a transaction
             try:
-                security_holding = session.query(SecurityHoldingORM).filter((SecurityHoldingORM.account_id == trade_instruction.account_id)
-                                                                            & (SecurityHoldingORM.security_symbol == trade_instruction.symbol)).first()
-                if security_holding is None:
-                    security_holding = SecurityHoldingORM()
-                    security_holding.account_id = trade_instruction.account_id
-                    security_holding.security_symbol = trade_instruction.symbol
-                    security_holding.holding_qty = trade_instruction.quantity
-                    security_holding.purchase_price = security_price
-                else:
-                    print("Security already exists")
-                    security_holding_total_qty = security_holding.holding_qty + trade_instruction.quantity
-                    security_holding.holding_qty = security_holding
-                    security_holding.purchase_price = (
-                        security_holding.purchase_price + security_price) / 2
+                # Add / Update Security Holding
+                SecurityHoldingService().add_update_security_holding(session=session,
+                                                                     account_id=trade_instruction.account_id,
+                                                                     security_symbol=trade_instruction.symbol,
+                                                                     security_type_code="STOCK",
+                                                                     transaction_qty=trade_instruction.quantity,
+                                                                     transaction_price=security_price)
 
-                session.add(security_holding)
-
-                accpunt_balance_payload = {"account_id": trade_instruction.account_id, "balance_amount": (
+                # Update Account Balance
+                account_balance_payload = {"account_id": trade_instruction.account_id, "balance_amount": (
                     existing_account_balance - trade_value)}
                 account_bal_service.add_update_account_balance(
-                    session, payload=accpunt_balance_payload, commit=False)
+                    session, payload=account_balance_payload)
 
-                # call the method to update trade activity log
-
-                session.flush()
-                session.commit()
-
-                self.return_payload['status'] = SUCCESS_CODE
-                self.return_payload['message'] = trade_instruction.symbol + \
-                    " trade executed successfully"
-                return self.return_payload
             except SQLAlchemyError as exception:
                 self.return_payload['status'] = FATAL_CODE
-                print(exception)
+                self.return_payload['message'] = '[KM] An internal error occurred..'
                 #self.return_payload['message'] = exception._message
+                print(exception)
                 session.rollback()
                 return self.return_payload
 
-                # if trade_instruction.direction = 'S':
-                # check number of securities to sell <= securities in holding
-                # if okay:
-                # start a transaction
-                # subtract security holding qty
-                # update account balance
-                # call the method to update trade activity log
-                # close the transaction
-                # if not okay - return an error message
+        if trade_instruction.direction == 'S':
+            # Exit; if security is not being held
+            # check number of securities to sell <= securities in holding
+            security_holding = SecurityHoldingService().get_security_holding(session=session,
+                                                                             account_id=trade_instruction.account_id,
+                                                                             security_symbol=trade_instruction.symbol)
+            if security_holding is None:
+                self.return_payload['status'] = ERROR_CODE
+                self.return_payload['message'] = "Security not being held: " + \
+                    trade_instruction.symbol
+                return self.return_payload
 
+            # start a transaction
+            try:
+                # Add / Update Security Holding
+                SecurityHoldingService().add_update_security_holding(session=session,
+                                                                     account_id=trade_instruction.account_id,
+                                                                     security_symbol=trade_instruction.symbol,
+                                                                     security_type_code="STOCK",
+                                                                     transaction_qty=trade_instruction.quantity,
+                                                                     transaction_price=security_price)
+
+                # Update Account Balance
+                account_balance_payload = {"account_id": trade_instruction.account_id, "balance_amount": (
+                    existing_account_balance + trade_value)}
+                account_bal_service.add_update_account_balance(
+                    session, payload=account_balance_payload)
+            except SQLAlchemyError as exception:
+                self.return_payload['status'] = FATAL_CODE
+                self.return_payload['message'] = '[KM] An internal error occurred..'
+                #self.return_payload['message'] = exception._message
+                print(exception)
+                session.rollback()
+                return self.return_payload
+
+        # Log the trade activity
+        TradeActivityService().log_trade_activity(session=session,
+                                                  account_id=trade_instruction.account_id,
+                                                  security_symbol=trade_instruction.symbol,
+                                                  transaction_qty=trade_instruction.quantity,
+                                                  transaction_price=security_price,
+                                                  transaction_type_code='B',
+                                                  transaction_timestamp=datetime.datetime.now())
+
+        session.flush()
+        session.commit()
+
+        self.return_payload['status'] = SUCCESS_CODE
+        self.return_payload['message'] = trade_instruction.symbol + \
+            " trade executed successfully"
         return self.return_payload
